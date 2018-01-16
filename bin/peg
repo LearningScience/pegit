@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+
+const main = require('../lib/peg.js');
+const pack = require('../package.json');
+const prog = require('commander');
+
+prog.usage('<command> [<pathspec>...] [<options>...]')
+	.version(pack.version);
+
+prog.command('status [<pathspec>...]')
+	.option('-f, --fast')
+	.action(main.status);
+
+prog.command('show [<pathspec>...]')
+	.option('-f, --fast')
+	.action(main.show);
+
+prog.command('diff [<pathspec>...]')
+	.option('-f, --fast')
+	.action(main.diff);
+
+prog.command('log [<pathspec>...]')
+	.option('-f, --fast')
+	.option('--pretty []', '', 'medium')
+	.action(main.log);
+
+prog.command('deploy [<pathspec>...]')
+	.option('-a, --arch')
+	.option('-f, --full')
+	.action(main.deploy);
+
+prog.command('sync [<pathspec>...]')
+	.option('-a, --arch')
+	.option('-f, --full')
+	.action(main.sync);
+
+prog.command('config')
+	.action(main.config);
+
+prog.parse(process.argv);

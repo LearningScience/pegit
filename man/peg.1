@@ -1,0 +1,129 @@
+.TH PEG 1
+
+.SH NAME
+
+pegit - the stupid content deployer
+
+.SH SYNOPSIS
+
+.IR peg \ <command>\ [<options>...]\ [<pathspec>...]
+
+.SH DESCRIPTION
+
+Pegit is a lightweight content deployment tool based on git tags. It revisions and deploys sub-trees of a git repo independently of each other with content addressed tag names. A permanent path for every revision of each sub-tree is provided by the generated output along with a revision index file.
+
+This is useful when differences between content revisions are likely to break user state. In such a system it's desirable to lock sessions to the revision they start with (with permanent revision paths), while allowing new sessions to dynamically obtain the latest revision (with revision index files).
+
+`peg` provides a concise git-like porcelain interface documented in the remainder of this man page. For a basic usage tutorial see the readme.
+
+.SH OPTIONS
+
+.TP
+.BR -f,\ --fast
+Suppress pulling tags for faster queries.
+
+By default, all commands fetch git remotes in order to obtain up-to-date deployment info. --fast suppresses this behaviour for non-destructive commands, however results will be based on potentially out-of-date deployment info.
+
+.TP
+.BR --pretty=<format>
+Pretty-print deploy logs in given format.
+
+Like git-log --pretty, <format> can be oneline, short, medium, full. Or like git-log --format, <format> can be a custom git formatting string which is passed to git-for-each-ref. When omitted <format> defaults to medium.
+
+.TP
+.BR -a,\ --arch
+Generate a zip archive of deploy content.
+
+In addition to syncing to the content server, generate a zip archive 'deploy.zip' under current working directory. The archive contents will be identical to what is being synced and gain the same options (e.g --full).
+
+.TP
+.BR -f,\ --full
+Generate full depth deploy content history.
+
+By default, only the latest deploy trees are generated for faster syncing and smaller archives. --full generates the full depth tree history under selected pathspec, this is useful for verifying and rebuilding the content server.
+
+.SH COMMAND
+
+.TP
+.BR status \ [<options>...]\ [<pathspec>...]
+Status of each content-tree.
+
+Like git-status, but lists trees instead of files and progresses towards a 'deployed' state. A tree's status is dependent on all files contained, whether they are committed and how they compare to the latest respective deploy-tree:
+
+"Current": All contained files are committed and all files are identical to the latest respective deploy-tree. In other words the tree-object is the same.
+
+"Ready": All contained files are committed and one or more files differ from the latest respective deploy tree. In other words the tree-object is different.
+
+"Unfit": One or more contained files are uncommitted and may differ from the latest respective deploy tree. In other words anything 'untracked' or 'staged'.
+
+.BR OPTIONS
+.br
+.BR -f,\ --fast
+
+.TP
+.BR show \ [<options>...]\ [<pathspec>...]
+Show the current deploy-trees.
+
+Similar to git-show but for deploy-trees instead of commits. Shows the git tree-object of the current deploy-tree for each tree matching the <pathspec>.
+
+.BR OPTIONS
+.br
+.BR -f,\ --fast
+
+.TP
+.BR diff \ [<options>...]\ [<pathspec>...]
+Diff the current deploy-trees.
+
+Similar to git-diff but for deploy-trees instead of commits. Diffs the working tree with the current deploy-tree for each tree matching the <pathspec>.
+
+.BR OPTIONS
+.br
+.BR -f,\ --fast
+
+.TP
+.BR log \ [<options>...]\ [<pathspec>...]
+Log the history of deploy-tags.
+
+Similar to git-log but for deploy-tags instead of commits. Outputs a combined log ordered by tagger-date for all trees matched by the <pathspec>.
+
+.BR OPTIONS
+.br
+.BR -f,\ --fast
+.br
+.BR --pretty=<format>
+
+.TP
+.BR deploy \ [<options>...]\ [<pathspec>...]
+Deploy content-trees.
+
+Attempts to deploy trees with a 'ready' status as defined by peg-status. Tags are generated and pushed and if successful the sync command is invoked. The following conditions are enforced to prevent potentially unsafe deployments:
+
+1. Git repository must be up-to-date with git remote. This is to prevent deploying potentially out-of-date or old content over the top of new content.
+
+2. User must have push rights to the git remote. This is to ensure new deployments are shared with other authors for the same reasons stated in #1.
+
+If either of these conditions are not met the command will back-out to the initial state as if a deploy was never attempted, deleting tags as necessary.
+
+.BR OPTIONS
+.br
+.BR -a,\ --arch
+.br
+.BR -f,\ --full
+
+.TP
+.BR sync \ [<options>...]\ [<pathspec>...]
+Sync content-trees.
+
+Normally peg-sync is automatically called by peg-deploy upon successfully creating and pushing deploy tags. It is useful to call directly if the sync stage fails while using peg-deploy or to validate/rebuild the content-server.
+
+1. Git repository must be up-to-date with git remote. This is to prevent deploying revision indices with potentially missing revision entries.
+
+2. User must have SSH access to the content-server. SSH (via rsync) will search for SSH keys in the usual places and prompt the user for a password if needed.
+
+The output of this command will list deploy trees that were not present on the server (and thus added), a quiet output means no updates were necessary.
+
+.BR OPTIONS
+.br
+.BR -a,\ --arch
+.br
+.BR -f,\ --full
