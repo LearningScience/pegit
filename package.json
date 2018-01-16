@@ -1,0 +1,22 @@
+{
+	"name": "pegit",
+	"version": "0.0.0",
+	"main": "lib/peg.js",
+	"directories": {
+		"bin": "bin",
+		"lib": "lib",
+		"man": "man"
+	},
+	"author": "Thomas Brierley",
+	"license": "MIT",
+	"description": "The stupid content deployer",
+	"keywords": [
+		"git",
+		"content",
+		"deployment"
+	],
+	"repository": "github:learningscience/pegit",
+	"dependencies": {
+		"commander": "^2"
+	}
+}
